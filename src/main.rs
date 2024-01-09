@@ -119,7 +119,7 @@ struct Schedule {
 
 impl Display for Schedule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut print_newline = false; // To avoid printing and ending newline
+        let mut print_newline = false; // To avoid printing an ending newline
         for (time, tasklist) in self.timeslots.iter() {
             if print_newline {
                 writeln!(f)?;
@@ -178,7 +178,13 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Command::Show { days } => {
+            let mut print_newline = false; // to avoid printing an ending newline
             for date in Local::now().date_naive().iter_days().take(days) {
+                if print_newline {
+                    println!();
+                }
+                print_newline = true;
+
                 println!("{}", date.format("%d %b %Y"));
 
                 let Some(schedule) = keeper.days.get(&date) else {
