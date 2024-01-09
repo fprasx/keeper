@@ -13,7 +13,7 @@ use keeper::{
 };
 
 use anyhow::{anyhow, Context};
-use chrono::{Days, Local, NaiveDate};
+use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
 const DATA_DIR: &str = concat!(env!("HOME"), "/.config/keeper/");
@@ -147,6 +147,16 @@ struct Keeper {
     days: BTreeMap<NaiveDate, Schedule>,
 }
 
+impl Keeper {
+    pub fn order(&mut self) {
+        for schedule in self.days.values_mut() {
+            for slot in schedule.timeslots.values_mut() {
+                slot.sort_by_key(|task| task.completed)
+            }
+        }
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     let mut keeper = load_data()?;
 
@@ -207,6 +217,7 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
+    keeper.order();
     commit_data(&keeper)?;
 
     Ok(())
