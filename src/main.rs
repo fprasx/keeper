@@ -1,20 +1,13 @@
 use std::{
-    collections::BTreeMap,
     env,
-    fmt::Display,
     fs::{self, DirBuilder, File},
     path::Path,
     process::{self, Stdio},
 };
 
-use keeper::{
-    cli::{Command, ShowSet},
-    color::{GREEN, RED, RESET},
-};
+use keeper::{cli::Command, data::Keeper};
 
 use anyhow::{anyhow, Context};
-use chrono::{Local, NaiveDate};
-use serde::{Deserialize, Serialize};
 
 const DATA_DIR: &str = concat!(env!("HOME"), "/.config/keeper/");
 const DATA_PATH: &str = concat!(env!("HOME"), "/.config/keeper/data.ron");
@@ -96,67 +89,6 @@ fn commit_data(data: &Keeper) -> anyhow::Result<()> {
     Ok(())
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Task {
-    completed: bool,
-    desc: String,
-}
-
-impl Display for Task {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.completed {
-            write!(f, "{GREEN}({RESET}{}{GREEN}){RESET}", self.desc)
-        } else {
-            write!(f, "{RED}({RESET}{}{RED}){RESET}", self.desc)
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
-struct Schedule {
-    timeslots: BTreeMap<usize, Vec<Task>>,
-}
-
-impl Display for Schedule {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut print_newline = false; // To avoid printing an ending newline
-        for (time, tasklist) in self.timeslots.iter() {
-            if print_newline {
-                writeln!(f)?;
-            }
-            print_newline = true;
-
-            let remaining = tasklist.iter().any(|t| !t.completed);
-
-            if remaining {
-                write!(f, "{RED}[{time}]{RESET}")?;
-            } else {
-                write!(f, "{GREEN}[{time}]{RESET}")?;
-            }
-
-            for task in tasklist {
-                write!(f, " {task}")?;
-            }
-        }
-        Ok(())
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
-struct Keeper {
-    days: BTreeMap<NaiveDate, Schedule>,
-}
-
-impl Keeper {
-    pub fn order(&mut self) {
-        for schedule in self.days.values_mut() {
-            for slot in schedule.timeslots.values_mut() {
-                slot.sort_by_key(|task| task.completed)
-            }
-        }
-    }
-}
-
 fn main() -> anyhow::Result<()> {
     let mut keeper = load_data()?;
 
@@ -164,56 +96,13 @@ fn main() -> anyhow::Result<()> {
     let command = Command::parse(args);
     match command {
         Command::Add { date, desc, hour } => {
-            keeper
-                .days
-                .entry(date)
-                .or_insert_with(Schedule::default)
-                .timeslots
-                .entry(hour)
-                .or_insert_with(Default::default)
-                .push(Task {
-                    completed: false,
-                    desc,
-                });
+            keeper.add(date, desc, hour);
         }
         Command::Mark { date, hour, index } => {
-            if let Some(task) = keeper
-                .days
-                .get_mut(&date)
-                .map(|schedule| &mut schedule.timeslots)
-                .and_then(|slot| slot.get_mut(&hour))
-                .and_then(|hour| hour.get_mut(index))
-            {
-                task.completed = true;
-            }
+            keeper.mark(date, hour, index);
         }
         Command::Show { set } => {
-            match set {
-                ShowSet::Days(days) => {
-                    let mut print_newline = false; // to avoid printing an ending newline
-                    for date in Local::now().date_naive().iter_days().take(days) {
-                        if print_newline {
-                            println!();
-                        }
-                        print_newline = true;
-
-                        println!("{}", date.format("%d %b %Y"));
-                        if let Some(schedule) = keeper.days.get(&date) {
-                            println!("{schedule}");
-                        } else {
-                            println!("Empty");
-                        }
-                    }
-                }
-                ShowSet::Date(date) => {
-                    println!("{}", date.format("%d %b %Y"));
-                    if let Some(schedule) = keeper.days.get(&date) {
-                        println!("{schedule}");
-                    } else {
-                        println!("Empty");
-                    }
-                }
-            }
+            keeper.show(set);
         }
     }
 
