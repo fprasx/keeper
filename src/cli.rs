@@ -57,9 +57,11 @@ fn parse_date(s: &str) -> NaiveDate {
 }
 
 pub fn help() -> ! {
+    let shortversion = &include_str!("../.git/refs/heads/main")[..6];
     // These colors are just too much fun
     println!(
         "\
+keeper ({shortversion}) Felix Prasanna 2024
 {YELLOW}help{RESET}:
     keeper help
 {YELLOW}add{RESET}:
