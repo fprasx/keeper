@@ -8,7 +8,7 @@ use std::{
 };
 
 use keeper::{
-    cli::Command,
+    cli::{Command, ShowSet},
     color::{GREEN, RED, RESET},
 };
 
@@ -177,22 +177,32 @@ fn main() -> anyhow::Result<()> {
                 task.completed = true;
             }
         }
-        Command::Show { days } => {
-            let mut print_newline = false; // to avoid printing an ending newline
-            for date in Local::now().date_naive().iter_days().take(days) {
-                if print_newline {
-                    println!();
+        Command::Show { set } => {
+            match set {
+                ShowSet::Days(days) => {
+                    let mut print_newline = false; // to avoid printing an ending newline
+                    for date in Local::now().date_naive().iter_days().take(days) {
+                        if print_newline {
+                            println!();
+                        }
+                        print_newline = true;
+
+                        println!("{}", date.format("%d %b %Y"));
+                        if let Some(schedule) = keeper.days.get(&date) {
+                            println!("{schedule}");
+                        } else {
+                            println!("Empty");
+                        }
+                    }
                 }
-                print_newline = true;
-
-                println!("{}", date.format("%d %b %Y"));
-
-                let Some(schedule) = keeper.days.get(&date) else {
-                    println!("Empty");
-                    continue;
-                };
-
-                println!("{schedule}");
+                ShowSet::Date(date) => {
+                    println!("{}", date.format("%d %b %Y"));
+                    if let Some(schedule) = keeper.days.get(&date) {
+                        println!("{schedule}");
+                    } else {
+                        println!("Empty");
+                    }
+                }
             }
         }
     }

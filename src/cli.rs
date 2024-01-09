@@ -3,6 +3,12 @@ use chrono::{Days, Local, NaiveDate};
 use std::{env::Args, process};
 
 #[derive(Debug)]
+pub enum ShowSet {
+    Days(usize),
+    Date(NaiveDate),
+}
+
+#[derive(Debug)]
 pub enum Command {
     Add {
         date: NaiveDate,
@@ -15,7 +21,7 @@ pub enum Command {
         index: usize,
     },
     Show {
-        days: usize,
+        set: ShowSet,
     },
 }
 
@@ -50,11 +56,10 @@ fn parse_date(s: &str) -> NaiveDate {
     })
 }
 
-impl Command {
-    pub fn help() -> ! {
-        // These colors are just too much fun
-        println!(
-            "\
+pub fn help() -> ! {
+    // These colors are just too much fun
+    println!(
+        "\
 {YELLOW}help{RESET}:
     keeper help
 {YELLOW}add{RESET}:
@@ -62,18 +67,18 @@ impl Command {
 {YELLOW}mark{RESET}:
     keeper mark {GREEN}(dd-mm-yy|today|tomorrow){RESET} {GREEN}(hour.index|hour){RESET}
 {YELLOW}show{RESET}:
-    keeper show count-of-days-to-show"
-        );
-        process::exit(0);
-    }
+    keeper show {GREEN}(count|today|tomorrow){RESET}
+    keeper show"
+    );
+    process::exit(0);
+}
 
+impl Command {
     pub fn parse(args: Args) -> Self {
         // First arg is program itself
         let mut args = args.skip(1);
 
-        let Some(command) = args.next() else {
-            Command::help()
-        };
+        let Some(command) = args.next() else { help() };
         match command.as_str() {
             "add" => {
                 let Some(date) = args.next() else {
@@ -136,13 +141,27 @@ impl Command {
                 }
             }
             "show" => {
-                let days = args.next().unwrap_or(String::from("1"));
-                let Ok(days) = days.parse() else {
-                    fatal!("failed to parse days");
+                // if no argument provided interpret as today
+                let Some(set) = args.next() else {
+                    return Self::Show {
+                        set: ShowSet::Date(Local::now().date_naive()),
+                    };
                 };
-                Self::Show { days }
+
+                if let Ok(days) = set.parse() {
+                    // First try to parse as number
+                    Self::Show {
+                        set: ShowSet::Days(days),
+                    }
+                } else {
+                    // Then try to parse as date
+                    let date = parse_date(&set);
+                    Self::Show {
+                        set: ShowSet::Date(date),
+                    }
+                }
             }
-            _ => Command::help(),
+            _ => help(),
         }
     }
 }
