@@ -2,7 +2,7 @@ use crate::color::{GREEN, RESET, YELLOW};
 use chrono::{Days, Local, NaiveDate};
 use std::{env::Args, process};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ShowSet {
     Days(usize),
     Date(NaiveDate),

@@ -79,14 +79,14 @@ impl Keeper {
         }
     }
 
-    pub fn add(&mut self, date: NaiveDate, desc: String, hour: usize) {
+    pub fn add(&mut self, date: NaiveDate, desc: &str, hour: usize) {
         self.days
             .entry(date)
             .or_default()
             .timeslots
             .entry(hour)
             .or_default()
-            .push(Task::new(desc));
+            .push(Task::new(desc.to_string()));
     }
 
     pub fn mark(&mut self, date: NaiveDate, hour: usize, index: usize) {
