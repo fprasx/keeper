@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["keeper-todo", "keeper-util"]
+members = [ "keeper-log","keeper-todo", "keeper-util"]
 
 [workspace.dependencies]
 anyhow = "1.0.79"

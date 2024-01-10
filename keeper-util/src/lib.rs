@@ -21,6 +21,22 @@ macro_rules! fatal {
     };
 }
 
+pub fn parse_date(s: &str) -> NaiveDate {
+    if s == "today" {
+        return Local::now().date_naive();
+    }
+    if s == "tomorrow" {
+        return Local::now().date_naive() + Days::new(1);
+    }
+    NaiveDate::parse_from_str(s, "%d-%m-%Y").unwrap_or_else(|e| {
+        fatal!("failed to parse date: {e}");
+    })
+}
+
+pub fn current_version() -> &'static str {
+    &include_str!("../../.git/refs/heads/main")[..6]
+}
+
 use std::{
     fs::{self, DirBuilder, File},
     marker::PhantomData,
@@ -29,6 +45,7 @@ use std::{
 };
 
 use anyhow::{anyhow, ensure, Context};
+use chrono::{NaiveDate, Local, Days};
 use serde::{Deserialize, Serialize};
 
 pub struct DataManager<T> {

@@ -119,6 +119,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "keeper-log"
+version = "0.1.0"
+dependencies = [
+ "keeper-util",
+]
+
+[[package]]
 name = "keeper-todo"
 version = "0.1.0"
 dependencies = [
@@ -134,6 +141,7 @@ name = "keeper-util"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "ron",
  "serde",
 ]

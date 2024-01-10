@@ -1,7 +1,8 @@
-use chrono::{Days, Local, NaiveDate};
+use chrono::{Local, NaiveDate};
 use keeper_util::{
     color::{GREEN, RESET, YELLOW},
     error, fatal,
+    parse_date, current_version
 };
 use std::{env::Args, process};
 
@@ -28,24 +29,12 @@ pub enum Command {
     },
 }
 
-fn parse_date(s: &str) -> NaiveDate {
-    if s == "today" {
-        return Local::now().date_naive();
-    }
-    if s == "tomorrow" {
-        return Local::now().date_naive() + Days::new(1);
-    }
-    NaiveDate::parse_from_str(s, "%d-%m-%Y").unwrap_or_else(|e| {
-        fatal!("failed to parse date: {e}");
-    })
-}
-
 pub fn help() -> ! {
-    let shortversion = &include_str!("../../.git/refs/heads/main")[..6];
+    let version = current_version();
     // These colors are just too much fun
     println!(
         "\
-keeper-todo ({shortversion}) Felix Prasanna 2024
+keeper-todo ({version}) Felix Prasanna 2024
 {YELLOW}help{RESET}:
     keeper-todo help
 {YELLOW}add{RESET}:
