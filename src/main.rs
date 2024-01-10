@@ -5,7 +5,7 @@ use std::{
     process::{self, Stdio},
 };
 
-use keeper::{cli::Command, data::Keeper};
+use keeper_todo::{cli::Command, data::Keeper};
 
 use anyhow::{anyhow, Context};
 

@@ -1,4 +1,4 @@
 install:
     cargo build --release \
-        && cp target/release/keeper ~/.local/bin/keeper \
-        && chmod +x ~/.local/bin/keeper
+        && cp target/release/keeper-todo ~/.local/bin/keeper-todo \
+        && chmod +x ~/.local/bin/keeper-todo

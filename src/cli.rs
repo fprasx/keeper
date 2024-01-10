@@ -61,16 +61,16 @@ pub fn help() -> ! {
     // These colors are just too much fun
     println!(
         "\
-keeper ({shortversion}) Felix Prasanna 2024
+keeper-todo ({shortversion}) Felix Prasanna 2024
 {YELLOW}help{RESET}:
-    keeper help
+    keeper-todo help
 {YELLOW}add{RESET}:
-    keeper add {GREEN}(dd-mm-yy|today|tomorrow){RESET} hour desc
+    keeper-todo add {GREEN}(dd-mm-yy|today|tomorrow){RESET} hour desc
 {YELLOW}mark{RESET}:
-    keeper mark {GREEN}(dd-mm-yy|today|tomorrow){RESET} {GREEN}(hour.index|hour){RESET}
+    keeper-todo mark {GREEN}(dd-mm-yy|today|tomorrow){RESET} {GREEN}(hour.index|hour){RESET}
 {YELLOW}show{RESET}:
-    keeper show {GREEN}(count|today|tomorrow){RESET}
-    keeper show"
+    keeper-todo show {GREEN}(count|today|tomorrow){RESET}
+    keeper-todo show"
     );
     process::exit(0);
 }
