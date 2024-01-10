@@ -1,8 +1,6 @@
-use crate::{
-    cli::ShowSet,
-    color::{GREEN, RED, RESET},
-};
+use crate::cli::ShowSet;
 use chrono::{Local, NaiveDate};
+use keeper_util::color::{GREEN, RED, RESET};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, fmt::Display};
 

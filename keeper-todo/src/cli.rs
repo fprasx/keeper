@@ -1,5 +1,8 @@
-use crate::color::{GREEN, RESET, YELLOW};
 use chrono::{Days, Local, NaiveDate};
+use keeper_util::{
+    color::{GREEN, RESET, YELLOW},
+    error, fatal,
+};
 use std::{env::Args, process};
 
 #[derive(Debug, Clone, Copy)]
@@ -23,25 +26,6 @@ pub enum Command {
     Show {
         set: ShowSet,
     },
-}
-
-macro_rules! error {
-    ($($t:tt),+ $(,)?) => {
-        {
-            print!("{}ERROR{} ", $crate::color::RED, $crate::color::RESET);
-            println!($($t),+);
-        }
-    };
-}
-
-macro_rules! fatal {
-    ($($t:tt),+ $(,)?) => {
-        {
-            print!("{}ERROR{} ", $crate::color::RED, $crate::color::RESET);
-            println!($($t),+);
-            ::std::process::exit(1);
-        }
-    };
 }
 
 fn parse_date(s: &str) -> NaiveDate {

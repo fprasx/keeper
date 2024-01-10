@@ -1,3 +1,26 @@
+pub mod color;
+
+#[macro_export]
+macro_rules! error {
+    ($($t:tt),+ $(,)?) => {
+        {
+            print!("{}ERROR{} ", $crate::color::RED, $crate::color::RESET);
+            println!($($t),+);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! fatal {
+    ($($t:tt),+ $(,)?) => {
+        {
+            print!("{}ERROR{} ", $crate::color::RED, $crate::color::RESET);
+            println!($($t),+);
+            ::std::process::exit(1);
+        }
+    };
+}
+
 use std::{
     fs::{self, DirBuilder, File},
     marker::PhantomData,
