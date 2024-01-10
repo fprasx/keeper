@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.79"
-chrono = { version = "0.4.31", features = ["serde"] }
-ron = "0.8.1"
-serde = { version = "1.0.195", features = ["derive"] }
+anyhow.workspace = true
+chrono.workspace = true
+ron.workspace = true
+serde.workspace = true
+keeper-util = { path = "../keeper-util/" }

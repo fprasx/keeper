@@ -1,3 +1,9 @@
 [workspace]
 resolver = "2"
-members = ["keeper-todo"]
+members = ["keeper-todo", "keeper-util"]
+
+[workspace.dependencies]
+anyhow = "1.0.79"
+chrono = { version = "0.4.31", features = ["serde"] }
+ron = "0.8.1"
+serde = { version = "1.0.195", features = ["derive"] }
