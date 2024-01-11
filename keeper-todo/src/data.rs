@@ -1,8 +1,8 @@
 use crate::cli::ShowSet;
-use chrono::{Local, NaiveDate};
-use keeper_util::color::{GREEN, RED, RESET};
+use chrono::{Local, NaiveDate, TimeZone};
+use keeper_util::color::{GREEN, RED, RESET, YELLOW};
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, fmt::Display};
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
@@ -23,44 +23,9 @@ impl Task {
     }
 }
 
-impl Display for Task {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.completed {
-            write!(f, "{GREEN}({RESET}{}{GREEN}){RESET}", self.desc)
-        } else {
-            write!(f, "{RED}({RESET}{}{RED}){RESET}", self.desc)
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Schedule {
     pub timeslots: BTreeMap<usize, Vec<Task>>,
-}
-
-impl Display for Schedule {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut print_newline = false; // To avoid printing an ending newline
-        for (time, tasklist) in self.timeslots.iter() {
-            if print_newline {
-                writeln!(f)?;
-            }
-            print_newline = true;
-
-            let remaining = tasklist.iter().any(|t| !t.completed);
-
-            if remaining {
-                write!(f, "{RED}[{time}]{RESET}")?;
-            } else {
-                write!(f, "{GREEN}[{time}]{RESET}")?;
-            }
-
-            for task in tasklist {
-                write!(f, " {task}")?;
-            }
-        }
-        Ok(())
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -99,31 +64,57 @@ impl Keeper {
         }
     }
 
+    fn display_day(&self, date: NaiveDate) {
+        println!("{}", date.format("%d %b %Y"));
+
+        let Some(Schedule { timeslots }) = self.days.get(&date) else {
+            println!("Empty");
+            return;
+        };
+
+        for (time, tasklist) in timeslots.iter() {
+            let all_done = tasklist.iter().all(|t| t.completed);
+            // If this hour has passed. For example, if time = 10, then we are
+            // at 11:00 o'clock or later.
+            let past_due = Local
+                .from_local_datetime(&date.and_hms_opt(*time as u32, 59, 59).unwrap())
+                .unwrap()
+                < Local::now();
+
+            match (all_done, past_due) {
+                (true, true) => print!("{GREEN}[{time}]{RESET}"),
+                (true, false) => print!("{GREEN}[{time}]{RESET}"),
+                (false, true) => print!("{RED}[{time}]{RESET}"),
+                (false, false) => print!("{YELLOW}[{time}]{RESET}"),
+            }
+
+            for task in tasklist {
+                match (task.completed, past_due) {
+                    (true, true) => print!(" {GREEN}({RESET}{}{GREEN}){RESET}", task.desc),
+                    (true, false) => print!(" {GREEN}({RESET}{}{GREEN}){RESET}", task.desc),
+                    (false, true) => print!(" {RED}({RESET}{}{RED}){RESET}", task.desc),
+                    (false, false) => print!(" ({})", task.desc),
+                }
+            }
+
+            println!();
+        }
+    }
+
     pub fn show(&self, set: ShowSet) {
         match set {
             ShowSet::Days(days) => {
-                let mut print_newline = false; // to avoid printing an ending newline
-                for date in Local::now().date_naive().iter_days().take(days) {
-                    if print_newline {
-                        println!();
-                    }
-                    print_newline = true;
-
-                    println!("{}", date.format("%d %b %Y"));
-                    if let Some(schedule) = self.days.get(&date) {
-                        println!("{schedule}");
-                    } else {
-                        println!("Empty");
-                    }
+                // avoid a double newline at the end
+                let mut days = Local::now().date_naive().iter_days().take(days);
+                let Some(date) = days.next() else { return };
+                self.display_day(date);
+                for date in days {
+                    println!();
+                    self.display_day(date);
                 }
             }
             ShowSet::Date(date) => {
-                println!("{}", date.format("%d %b %Y"));
-                if let Some(schedule) = self.days.get(&date) {
-                    println!("{schedule}");
-                } else {
-                    println!("Empty");
-                }
+                self.display_day(date);
             }
         }
     }
