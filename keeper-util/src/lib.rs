@@ -90,8 +90,8 @@ where
         }
 
         // check for DATA_PATH
-        if !Path::new(self.data_dir()).exists() {
-            File::create(self.data_dir()).with_context(|| {
+        if !Path::new(&self.data_path).exists() {
+            File::create(&self.data_path).with_context(|| {
                 format!("failed to create data file at {}", self.data_filename_str())
             })?;
 
@@ -100,7 +100,7 @@ where
             let ron = ron::ser::to_string_pretty(&keeper, Default::default())
                 .context("failed to serialize RON")?;
 
-            fs::write(self.data_dir(), ron).with_context(|| {
+            fs::write(&self.data_path, ron).with_context(|| {
                 format!("failed to write RON back to {}", self.data_filename_str())
             })?;
         }
