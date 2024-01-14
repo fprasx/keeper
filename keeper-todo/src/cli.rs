@@ -38,12 +38,17 @@ keeper-todo ({version}) Felix Prasanna 2024
 {YELLOW}help{RESET}:
     keeper-todo help
 {YELLOW}add{RESET}:
-    keeper-todo add {GREEN}(dd-mm-yy|today|tomorrow){RESET} hour desc
+    keeper-todo add {GREEN}date{RESET} hour desc
 {YELLOW}mark{RESET}:
-    keeper-todo mark {GREEN}(dd-mm-yy|today|tomorrow){RESET} {GREEN}(hour.index|hour){RESET}
+    keeper-todo mark {GREEN}date{RESET} hour.index
+    keeper-todo mark {GREEN}date{RESET} hour
 {YELLOW}show{RESET}:
-    keeper-todo show {GREEN}(count|today|tomorrow){RESET}
-    keeper-todo show"
+    keeper-todo show {GREEN}date{RESET}
+    keeper-todo show {GREEN}count{RESET}
+    keeper-todo show
+
+{YELLOW}terms{RESET}:
+    date = {GREEN}(dd-mm-yy|today|tomorrow|yesterday){RESET}"
     );
     process::exit(0);
 }

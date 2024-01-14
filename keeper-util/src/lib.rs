@@ -28,6 +28,9 @@ pub fn parse_date(s: &str) -> NaiveDate {
     if s == "tomorrow" {
         return Local::now().date_naive() + Days::new(1);
     }
+    if s == "yesterday" {
+        return Local::now().date_naive() - Days::new(1);
+    }
     NaiveDate::parse_from_str(s, "%d-%m-%Y").unwrap_or_else(|e| {
         fatal!("failed to parse date: {e}");
     })
