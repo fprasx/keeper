@@ -2,7 +2,7 @@ use crate::cli::ShowSet;
 use chrono::{Local, NaiveDate, TimeZone};
 use keeper_util::color::{GREEN, RED, RESET, YELLOW};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt::Display};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
@@ -64,12 +64,29 @@ impl Keeper {
         }
     }
 
-    fn display_day(&self, date: NaiveDate) {
-        println!("{}", date.format("%d %b %Y"));
+    pub fn show(&self, set: ShowSet) {
+        print!("{}", KeeperDisplay::new(self, set));
+    }
 
-        let Some(Schedule { timeslots }) = self.days.get(&date) else {
-            println!("Empty");
-            return;
+    pub fn render(&self) {}
+}
+
+struct KeeperDisplay<'a> {
+    keeper: &'a Keeper,
+    selection: ShowSet,
+}
+
+impl<'a> KeeperDisplay<'a> {
+    pub fn new(keeper: &'a Keeper, selection: ShowSet) -> Self {
+        Self { keeper, selection }
+    }
+
+    fn fmt_date(&self, f: &mut std::fmt::Formatter<'_>, date: NaiveDate) -> std::fmt::Result {
+        writeln!(f, "{}", date.format("%d %b %Y"))?;
+
+        let Some(Schedule { timeslots }) = self.keeper.days.get(&date) else {
+            writeln!(f, "Empty")?;
+            return Ok(());
         };
 
         for (time, tasklist) in timeslots.iter() {
@@ -82,40 +99,44 @@ impl Keeper {
                 < Local::now();
 
             match (all_done, past_due) {
-                (true, true) => print!("{GREEN}[{time}]{RESET}"),
-                (true, false) => print!("{GREEN}[{time}]{RESET}"),
-                (false, true) => print!("{RED}[{time}]{RESET}"),
-                (false, false) => print!("{YELLOW}[{time}]{RESET}"),
+                (true, true) => write!(f, "{GREEN}[{time}]{RESET}")?,
+                (true, false) => write!(f, "{GREEN}[{time}]{RESET}")?,
+                (false, true) => write!(f, "{RED}[{time}]{RESET}")?,
+                (false, false) => write!(f, "{YELLOW}[{time}]{RESET}")?,
             }
 
             for task in tasklist {
                 match (task.completed, past_due) {
-                    (true, true) => print!(" {GREEN}({RESET}{}{GREEN}){RESET}", task.desc),
-                    (true, false) => print!(" {GREEN}({RESET}{}{GREEN}){RESET}", task.desc),
-                    (false, true) => print!(" {RED}({RESET}{}{RED}){RESET}", task.desc),
-                    (false, false) => print!(" ({})", task.desc),
+                    (true, true) => write!(f, " {GREEN}({RESET}{}{GREEN}){RESET}", task.desc)?,
+                    (true, false) => write!(f, " {GREEN}({RESET}{}{GREEN}){RESET}", task.desc)?,
+                    (false, true) => write!(f, " {RED}({RESET}{}{RED}){RESET}", task.desc)?,
+                    (false, false) => write!(f, " ({})", task.desc)?,
                 }
             }
 
-            println!();
+            writeln!(f,)?;
         }
+        Ok(())
     }
+}
 
-    pub fn show(&self, set: ShowSet) {
-        match set {
+impl Display for KeeperDisplay<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.selection {
             ShowSet::Days(days) => {
                 // avoid a double newline at the end
                 let mut days = Local::now().date_naive().iter_days().take(days);
-                let Some(date) = days.next() else { return };
-                self.display_day(date);
+                let Some(date) = days.next() else { return Ok(()) };
+                self.fmt_date(f, date)?;
                 for date in days {
-                    println!();
-                    self.display_day(date);
+                    writeln!(f)?;
+                    self.fmt_date(f, date)?;
                 }
             }
             ShowSet::Date(date) => {
-                self.display_day(date);
+                self.fmt_date(f, date)?;
             }
         }
+        Ok(())
     }
 }
