@@ -8,6 +8,9 @@ set -eu
 
 DIR="$HOME/code/rust/keeper/keeper-todo"
 
+# remove old wallpapers
+~/.cargo/bin/fd --type file --extension png --absolute-path --no-ignore . "$DIR/wallpapers/" | xargs rm
+
 # Generate new wallpaper filename
 WALLPAPER_FILE="$DIR/wallpapers/wallpaper-$(date "+%Y-%m-%d-%H-%M-%S").png"
 
@@ -15,5 +18,5 @@ WALLPAPER_FILE="$DIR/wallpapers/wallpaper-$(date "+%Y-%m-%d-%H-%M-%S").png"
 ~/.local/bin/keeper-todo render today "$WALLPAPER_FILE"
 
 # Set the new wallpaper
-automator -i "$WALLPAPER_FILE" "$DIR/wp.workflow"
+automator -i "$WALLPAPER_FILE" "$DIR/wp.workflow" > /dev/null
 
