@@ -1,10 +1,9 @@
 use chrono::{Local, NaiveDate};
 use keeper_util::{
     color::{GREEN, RESET, YELLOW},
-    error, fatal,
-    parse_date, current_version
+    current_version, error, fatal, parse_date,
 };
-use std::{env::Args, process};
+use std::{env::Args, path::PathBuf, process};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ShowSet {
@@ -27,6 +26,10 @@ pub enum Command {
     Show {
         set: ShowSet,
     },
+    Render {
+        set: ShowSet,
+        path: PathBuf,
+    },
 }
 
 pub fn help() -> ! {
@@ -46,6 +49,9 @@ keeper-todo ({version}) Felix Prasanna 2024
     keeper-todo show {GREEN}date{RESET}
     keeper-todo show {GREEN}count{RESET}
     keeper-todo show
+{YELLOW}render{RESET}:
+    keeper-todo render {GREEN}date{RESET} path
+    keeper-todo render {GREEN}count{RESET} path
 
 {YELLOW}terms{RESET}:
     date = {GREEN}(dd-mm-yy|today|tomorrow|yesterday){RESET}"
@@ -139,6 +145,29 @@ impl Command {
                     Self::Show {
                         set: ShowSet::Date(date),
                     }
+                }
+            }
+            "render" => {
+                // if no argument provided interpret as today
+                let Some(set) = args.next() else {
+                    fatal!("no date/count provided to render");
+                };
+
+                let set = if let Ok(days) = set.parse() {
+                    // First try to parse as number
+                    ShowSet::Days(days)
+                } else {
+                    // Then try to parse as date
+                    ShowSet::Date(parse_date(&set))
+                };
+
+                let Some(path) = args.next() else {
+                    fatal!("no path provided to render")
+                };
+
+                Self::Render {
+                    set,
+                    path: PathBuf::from(path),
                 }
             }
             _ => help(),
