@@ -7,7 +7,7 @@ use rusttype::{Font, Scale};
 use serde::{Deserialize, Serialize};
 
 use crate::cli::ShowSet;
-use keeper_util::color::{GREEN, RED, RESET, BLUE};
+use keeper_util::color::{BLUE, GREEN, RED, RESET};
 
 const SCREEN_HEIGHT: u32 = 956;
 const SCREEN_WIDTH: u32 = 1470;
@@ -141,20 +141,22 @@ impl<'a> KeeperDisplay<'a> {
                 .unwrap()
                 < Local::now();
 
-            match (all_done, past_due) {
-                (true, true) => write!(f, "{green}[{time}]{reset}")?,
-                (true, false) => write!(f, "{green}[{time}]{reset}")?,
-                (false, true) => write!(f, "{red}[{time}]{reset}")?,
-                (false, false) => write!(f, "{blue}[{time}]{reset}")?,
-            }
+            let bracket_color = match (all_done, past_due) {
+                (true, true) => green,
+                (true, false) => green,
+                (false, true) => red,
+                (false, false) => blue,
+            };
+            write!(f, "{bracket_color}[{time}]{reset}")?;
 
             for task in tasklist {
-                match (task.completed, past_due) {
-                    (true, true) => write!(f, " {green}({reset}{}{green}){reset}", task.desc)?,
-                    (true, false) => write!(f, " {green}({reset}{}{green}){reset}", task.desc)?,
-                    (false, true) => write!(f, " {red}({reset}{}{red}){reset}", task.desc)?,
-                    (false, false) => write!(f, " ({})", task.desc)?,
-                }
+                let color = match (task.completed, past_due) {
+                    (true, true) => green,
+                    (true, false) => green,
+                    (false, true) => red,
+                    (false, false) => reset,
+                };
+                write!(f, " {color}({reset}{}{color}){reset}", task.desc)?
             }
 
             writeln!(f,)?;
