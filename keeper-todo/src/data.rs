@@ -7,7 +7,7 @@ use rusttype::{Font, Scale};
 use serde::{Deserialize, Serialize};
 
 use crate::cli::ShowSet;
-use keeper_util::color::{GREEN, RED, RESET, YELLOW};
+use keeper_util::color::{GREEN, RED, RESET, BLUE};
 
 const SCREEN_HEIGHT: u32 = 956;
 const SCREEN_WIDTH: u32 = 1470;
@@ -116,12 +116,12 @@ impl<'a> KeeperDisplay<'a> {
     fn fmt_day(&self, f: &mut std::fmt::Formatter<'_>, date: NaiveDate) -> std::fmt::Result {
         let mut green = GREEN;
         let mut red = RED;
-        let mut yellow = YELLOW;
+        let mut blue = BLUE;
         let mut reset = RESET;
         if matches!(self.color, ColorStyle::NoColor) {
             green = "";
             red = "";
-            yellow = "";
+            blue = "";
             reset = "";
         }
 
@@ -145,7 +145,7 @@ impl<'a> KeeperDisplay<'a> {
                 (true, true) => write!(f, "{green}[{time}]{reset}")?,
                 (true, false) => write!(f, "{green}[{time}]{reset}")?,
                 (false, true) => write!(f, "{red}[{time}]{reset}")?,
-                (false, false) => write!(f, "{yellow}[{time}]{reset}")?,
+                (false, false) => write!(f, "{blue}[{time}]{reset}")?,
             }
 
             for task in tasklist {
