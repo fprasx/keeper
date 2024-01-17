@@ -23,6 +23,12 @@ pub enum Command {
         hour: usize,
         index: usize,
     },
+    Change {
+        date: NaiveDate,
+        old_hour: usize,
+        index: usize,
+        new_hour: usize,
+    },
     Show {
         set: ShowSet,
     },
@@ -45,6 +51,9 @@ keeper-todo ({version}) Felix Prasanna 2024
 {YELLOW}mark{RESET}:
     keeper-todo mark {GREEN}date{RESET} hour.index
     keeper-todo mark {GREEN}date{RESET} hour
+{YELLOW}change{RESET}:
+    keeper-todo change {GREEN}date{RESET} hour.index new-hour
+    keeper-todo change {GREEN}date{RESET} hour new-hour
 {YELLOW}show{RESET}:
     keeper-todo show {GREEN}date{RESET}
     keeper-todo show {GREEN}count{RESET}
@@ -124,6 +133,55 @@ impl Command {
                             index: 0,
                         }
                     }
+                }
+            }
+            "change" => {
+                let Some(date) = args.next() else {
+                    fatal!("no date provided to change");
+                };
+                let date = parse_date(&date);
+
+                let Some(id) = args.next() else {
+                    error!("no id provided to change");
+                    fatal!("expecting format [hour.index] or [hour]");
+                };
+                let (old_hour, index) = match id.split_once('.') {
+                    Some((hour, index)) => {
+                        let Ok(hour) = hour.parse() else {
+                            fatal!("failed to parse hour from format [hour.index]");
+                        };
+                        let Ok(index) = index.parse() else {
+                            fatal!("failed to parse index from format [hour.index]");
+                        };
+                        if !(0..24).contains(&hour) {
+                            fatal!("hour [{}] is not in 0..24", hour);
+                        }
+                        (hour, index)
+                    }
+                    None => {
+                        let Ok(hour) = id.parse() else {
+                            fatal!("failed to parse hour from format [hour]");
+                        };
+                        if !(0..24).contains(&hour) {
+                            fatal!("hour [{}] is not in 0..24", hour);
+                        }
+                        (hour, 0)
+                    }
+                };
+                let Some(new_hour) = args.next() else {
+                    fatal!("no new-hour provided to change");
+                };
+                let Ok(new_hour) = new_hour.parse() else {
+                    fatal!("failed to parse new-hour from format [new-hour]");
+                };
+                if !(0..24).contains(&new_hour) {
+                    fatal!("new-hour [{}] is not in 0..24", new_hour);
+                }
+                Self::Change {
+                    date,
+                    old_hour,
+                    index,
+                    new_hour,
                 }
             }
             "show" => {

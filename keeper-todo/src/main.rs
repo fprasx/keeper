@@ -22,6 +22,14 @@ fn main() -> anyhow::Result<()> {
         Command::Mark { date, hour, index } => {
             keeper.mark(date, hour, index);
         }
+        Command::Change {
+            date,
+            old_hour,
+            index,
+            new_hour,
+        } => {
+            keeper.change(date, old_hour, index, new_hour);
+        }
         Command::Show { set } => {
             keeper.show(set);
         }

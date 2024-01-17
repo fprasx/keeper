@@ -7,7 +7,10 @@ use rusttype::{Font, Scale};
 use serde::{Deserialize, Serialize};
 
 use crate::cli::ShowSet;
-use keeper_util::color::{BLUE, GREEN, RED, RESET};
+use keeper_util::{
+    color::{BLUE, GREEN, RED, RESET},
+    fatal,
+};
 
 const SCREEN_HEIGHT: u32 = 956;
 const SCREEN_WIDTH: u32 = 1470;
@@ -67,6 +70,20 @@ impl Keeper {
             .entry(hour)
             .or_default()
             .push(Task::new(desc.to_string()));
+    }
+
+    pub fn change(&mut self, date: NaiveDate, old_hour: usize, index: usize, new_hour: usize) {
+        let Some(day) = self.days.get_mut(&date) else {
+            fatal!("no tasks today");
+        };
+        let Some(tasks) = day.timeslots.get_mut(&old_hour) else {
+            fatal!("no task at hour [{old_hour}]");
+        };
+        if index > tasks.len() {
+            fatal!("index {index} is too large for hour {old_hour}");
+        }
+        let task = tasks.remove(index);
+        day.timeslots.entry(new_hour).or_default().push(task);
     }
 
     pub fn mark(&mut self, date: NaiveDate, hour: usize, index: usize) {
