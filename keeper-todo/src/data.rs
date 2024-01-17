@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::cli::ShowSet;
 use keeper_util::{
     color::{BLUE, GREEN, RED, RESET},
-    fatal,
+    fatal, info,
 };
 
 const SCREEN_HEIGHT: u32 = 956;
@@ -83,6 +83,7 @@ impl Keeper {
             fatal!("index {index} is too large for hour {old_hour}");
         }
         let task = tasks.remove(index);
+        info!("moved '{}' from {old_hour} to {new_hour}", task.desc);
         day.timeslots.entry(new_hour).or_default().push(task);
     }
 
@@ -94,7 +95,8 @@ impl Keeper {
             .and_then(|slot| slot.get_mut(&hour))
             .and_then(|hour| hour.get_mut(index))
         {
-            task.mark_complete()
+            task.mark_complete();
+            info!("marked '{}' complete", task.desc);
         }
     }
 

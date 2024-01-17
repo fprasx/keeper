@@ -2,21 +2,31 @@ pub mod color;
 
 #[macro_export]
 macro_rules! error {
-    ($($t:tt),+ $(,)?) => {
+    ($($e:expr),+ $(,)?) => {
         {
             print!("{}ERROR{} ", $crate::color::RED, $crate::color::RESET);
-            println!($($t),+);
+            println!($($e),+);
         }
     };
 }
 
 #[macro_export]
 macro_rules! fatal {
-    ($($t:tt),+ $(,)?) => {
+    ($($e:expr),+ $(,)?) => {
         {
             print!("{}ERROR{} ", $crate::color::RED, $crate::color::RESET);
-            println!($($t),+);
+            println!($($e),+);
             ::std::process::exit(1);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! info {
+    ($($e:expr),+ $(,)?) => {
+        {
+            print!("{}INFO{} ", $crate::color::GREEN, $crate::color::RESET);
+            println!($($e),+);
         }
     };
 }
