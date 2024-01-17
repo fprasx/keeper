@@ -83,6 +83,12 @@ impl Keeper {
             fatal!("index {index} is too large for hour {old_hour}");
         }
         let task = tasks.remove(index);
+
+        // delete old_hour tasks vec if empty
+        if tasks.is_empty() {
+            day.timeslots.remove(&old_hour);
+        }
+
         info!("moved '{}' from {old_hour} to {new_hour}", task.desc);
         day.timeslots.entry(new_hour).or_default().push(task);
     }
