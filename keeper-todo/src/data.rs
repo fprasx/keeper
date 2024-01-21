@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Display, path::Path};
+use std::{collections::BTreeMap, fmt::Display, path::Path, process};
 
 use chrono::{Local, NaiveDate, TimeZone};
 use image::{ImageBuffer, Rgb};
@@ -11,6 +11,8 @@ use keeper_util::{
     color::{BLUE, GREEN, RED, RESET},
     fatal, info,
 };
+
+const HOME: &str = env!("HOME");
 
 const SCREEN_HEIGHT: u32 = 956;
 const SCREEN_WIDTH: u32 = 1470;
@@ -70,6 +72,8 @@ impl Keeper {
             .entry(hour)
             .or_default()
             .push(Task::new(desc.to_string()));
+
+        self.update_wallpaper();
     }
 
     pub fn change(&mut self, date: NaiveDate, old_hour: usize, index: usize, new_hour: usize) {
@@ -91,6 +95,8 @@ impl Keeper {
 
         info!("moved '{}' from {old_hour} to {new_hour}", task.desc);
         day.timeslots.entry(new_hour).or_default().push(task);
+
+        self.update_wallpaper();
     }
 
     pub fn mark(&mut self, date: NaiveDate, hour: usize, index: usize) {
@@ -104,6 +110,8 @@ impl Keeper {
             task.mark_complete();
             info!("marked '{}' complete", task.desc);
         }
+
+        self.update_wallpaper();
     }
 
     pub fn show(&self, set: ShowSet) {
@@ -115,6 +123,43 @@ impl Keeper {
         let mut renderer = KeeperRenderer::new(self, set, NORD_BG);
         renderer.render();
         renderer.save(path);
+    }
+
+    fn update_wallpaper(&self) {
+        // delete old wall papers
+        process::Command::new("fd")
+            .args([
+                "--type",
+                "file",
+                "--extension",
+                "png",
+                "--absolute-path",
+                "--no-ignore",
+                ".",
+                &format!("{HOME}/.local/share/keeper/wallpapers/"),
+                "-x",
+                "rm",
+            ])
+            .output()
+            .unwrap();
+
+        // create new one
+        let today = Local::now();
+        let wallpaper_file = format!(
+            "{HOME}/.local/share/keeper/wallpapers/wallpaper-{}.png",
+            today.format("%y-%m-%d-%H-%M-%S")
+        );
+        self.render(ShowSet::Date(today.date_naive()), wallpaper_file.as_ref());
+
+        // set new wallpaper
+        process::Command::new("automator")
+            .args([
+                "-i",
+                &wallpaper_file,
+                &format!("{HOME}/.local/share/keeper/wp.workflow"),
+            ])
+            .output()
+            .unwrap();
     }
 }
 

@@ -2,6 +2,7 @@ init:
     mkdir -p ~/.local/share/keeper
     git -C ~/.local/share/keeper init
     cp -R keeper-todo/wp.workflow ~/.local/share/keeper
+    mkdir -p ~/.local/share/keeper/wallpapers
 
 install target:
     cargo build \
