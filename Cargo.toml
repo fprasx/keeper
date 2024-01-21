@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [ "keeper-log","keeper-todo", "keeper-util"]
+license = ["GPL-3.0-or-later"]
 
 [workspace.dependencies]
 anyhow = "1.0.79"
