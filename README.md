@@ -23,6 +23,8 @@ will be blue.
 Whenever you update your todo list, the your wallpaper will automatically rerender
 to reflect the new state.
 
+![Screenshot of keeper-todo](./screenshot.png)
+
 All operations are performed through the CLI. I recommend adding some snippets to
 your shell configuration.
 
@@ -64,7 +66,7 @@ pixel values you get from taking the largest screenshot possible on your machine
 
 ## License
 
-License under the GPL v3.0 or later.
+Licensed under the GPL v3.0 or later.
 
 Copyright 2024-present Felix Prasanna
 
