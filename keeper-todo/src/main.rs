@@ -3,7 +3,7 @@ use std::{env, path::Path};
 use keeper_todo::{cli::Command, data::Keeper};
 use keeper_util::DataManager;
 
-const DATA_PATH: &str = concat!(env!("HOME"), "/.config/keeper/data.ron");
+const DATA_PATH: &str = concat!(env!("HOME"), "/.local/share/keeper/data.ron");
 
 fn main() -> anyhow::Result<()> {
     let dm = DataManager::<Keeper>::new(Path::new(DATA_PATH))?;

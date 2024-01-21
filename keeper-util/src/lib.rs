@@ -129,7 +129,7 @@ where
             != 0
         {
             process::Command::new("git")
-                .args(["-C", self.data_filename_str(), "init"])
+                .args(["-C", self.data_dir_str(), "init"])
                 .status()
                 .with_context(|| format!("failed to run git init in {}", self.data_dir_str()))?;
         }
