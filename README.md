@@ -52,17 +52,13 @@ terms:
     date = (dd-mm-yy|today|tomorrow|yesterday)
 ```
 
-## Why?
-Because I amortize my procrastination time by working on things that will
-allegedly make me more productive. Plus engineers love to overengineer things.
-We should really just be called overnegineers.
-
 ## Caveats
 
 Currently, rendering only works on MacOS. Additionally, some of the constants are
-tailored to my system. However, if you a Mac, all you have to recalculate them.
+tailored to my system. However, if you a Mac, all you have to do is recalculate them.
 You'll probably only need to change `SCREEN_HEIGHT` and `SCREEN_WIDTH` to the
 pixel values you get from taking the largest screenshot possible on your machine.
+You might also need to change some constants for the padding.
 
 ## License
 
