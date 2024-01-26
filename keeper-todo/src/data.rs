@@ -73,7 +73,7 @@ impl Keeper {
             .or_default()
             .push(Task::new(desc.to_string()));
 
-        self.update_wallpaper();
+        self.render(ShowSet::Date(Local::now().date_naive()));
     }
 
     pub fn change(&mut self, date: NaiveDate, old_hour: usize, index: usize, new_hour: usize) {
@@ -96,7 +96,7 @@ impl Keeper {
         info!("moved '{}' from {old_hour} to {new_hour}", task.desc);
         day.timeslots.entry(new_hour).or_default().push(task);
 
-        self.update_wallpaper();
+        self.render(ShowSet::Date(Local::now().date_naive()));
     }
 
     pub fn mark(&mut self, date: NaiveDate, hour: usize, index: usize) {
@@ -111,7 +111,7 @@ impl Keeper {
             info!("marked '{}' complete", task.desc);
         }
 
-        self.update_wallpaper();
+        self.render(ShowSet::Date(Local::now().date_naive()));
     }
 
     pub fn show(&self, set: ShowSet) {
@@ -119,13 +119,7 @@ impl Keeper {
         print!("{}", KeeperDisplay::new(self, set, ColorStyle::Color));
     }
 
-    pub fn render(&self, set: ShowSet, path: &Path) {
-        let mut renderer = KeeperRenderer::new(self, set, NORD_BG);
-        renderer.render();
-        renderer.save(path);
-    }
-
-    fn update_wallpaper(&self) {
+    pub fn render(&self, set: ShowSet) {
         // delete old wall papers
         process::Command::new("fd")
             .args([
@@ -149,7 +143,10 @@ impl Keeper {
             "{HOME}/.local/share/keeper/wallpapers/wallpaper-{}.png",
             today.format("%y-%m-%d-%H-%M-%S")
         );
-        self.render(ShowSet::Date(today.date_naive()), wallpaper_file.as_ref());
+
+        let mut renderer = KeeperRenderer::new(self, set, NORD_BG);
+        renderer.render();
+        renderer.save(wallpaper_file.as_ref());
 
         // set new wallpaper
         process::Command::new("automator")

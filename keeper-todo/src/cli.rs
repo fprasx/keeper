@@ -3,7 +3,7 @@ use keeper_util::{
     color::{GREEN, RESET, YELLOW},
     current_version, error, fatal, parse_date,
 };
-use std::{env::Args, path::PathBuf, process};
+use std::{env::Args, process};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ShowSet {
@@ -34,7 +34,6 @@ pub enum Command {
     },
     Render {
         set: ShowSet,
-        path: PathBuf,
     },
 }
 
@@ -219,14 +218,7 @@ impl Command {
                     ShowSet::Date(parse_date(&set))
                 };
 
-                let Some(path) = args.next() else {
-                    fatal!("no path provided to render")
-                };
-
-                Self::Render {
-                    set,
-                    path: PathBuf::from(path),
-                }
+                Self::Render { set }
             }
             _ => help(),
         }

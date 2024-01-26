@@ -33,8 +33,8 @@ fn main() -> anyhow::Result<()> {
         Command::Show { set } => {
             keeper.show(set);
         }
-        Command::Render { set, ref path } => {
-            keeper.render(set, path);
+        Command::Render { set } => {
+            keeper.render(set);
         }
     }
 
