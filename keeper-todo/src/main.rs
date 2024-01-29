@@ -1,5 +1,6 @@
 use std::{env, path::Path};
 
+use anyhow::Context;
 use keeper_todo::{cli::Command, data::Keeper};
 use keeper_util::DataManager;
 
@@ -17,10 +18,12 @@ fn main() -> anyhow::Result<()> {
             ref desc,
             hour,
         } => {
-            keeper.add(date, desc, hour);
+            keeper.add(date, desc, hour).context("add command failed")?;
         }
         Command::Mark { date, hour, index } => {
-            keeper.mark(date, hour, index);
+            keeper
+                .mark(date, hour, index)
+                .context("mark command failed")?;
         }
         Command::Change {
             date,
@@ -28,13 +31,15 @@ fn main() -> anyhow::Result<()> {
             index,
             new_hour,
         } => {
-            keeper.change(date, old_hour, index, new_hour);
+            keeper
+                .change(date, old_hour, index, new_hour)
+                .context("change command failed")?;
         }
         Command::Show { set } => {
             keeper.show(set);
         }
         Command::Render { set } => {
-            keeper.render(set);
+            keeper.render(set).context("render command failed")?;
         }
     }
 

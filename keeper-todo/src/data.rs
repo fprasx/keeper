@@ -1,5 +1,6 @@
 use std::{collections::BTreeMap, fmt::Display, path::Path, process};
 
+use anyhow::Context;
 use chrono::{Local, NaiveDate, TimeZone};
 use image::{ImageBuffer, Rgb};
 use imageproc::drawing::{draw_text_mut, text_size};
@@ -64,7 +65,7 @@ impl Keeper {
         }
     }
 
-    pub fn add(&mut self, date: NaiveDate, desc: &str, hour: usize) {
+    pub fn add(&mut self, date: NaiveDate, desc: &str, hour: usize) -> anyhow::Result<()> {
         self.days
             .entry(date)
             .or_default()
@@ -73,10 +74,16 @@ impl Keeper {
             .or_default()
             .push(Task::new(desc.to_string()));
 
-        self.render(ShowSet::Date(Local::now().date_naive()));
+        self.render(ShowSet::Date(Local::now().date_naive()))
     }
 
-    pub fn change(&mut self, date: NaiveDate, old_hour: usize, index: usize, new_hour: usize) {
+    pub fn change(
+        &mut self,
+        date: NaiveDate,
+        old_hour: usize,
+        index: usize,
+        new_hour: usize,
+    ) -> anyhow::Result<()> {
         let Some(day) = self.days.get_mut(&date) else {
             fatal!("no tasks today");
         };
@@ -96,10 +103,10 @@ impl Keeper {
         info!("moved '{}' from {old_hour} to {new_hour}", task.desc);
         day.timeslots.entry(new_hour).or_default().push(task);
 
-        self.render(ShowSet::Date(Local::now().date_naive()));
+        self.render(ShowSet::Date(Local::now().date_naive()))
     }
 
-    pub fn mark(&mut self, date: NaiveDate, hour: usize, index: usize) {
+    pub fn mark(&mut self, date: NaiveDate, hour: usize, index: usize) -> anyhow::Result<()> {
         if let Some(task) = self
             .days
             .get_mut(&date)
@@ -111,7 +118,7 @@ impl Keeper {
             info!("marked '{}' complete", task.desc);
         }
 
-        self.render(ShowSet::Date(Local::now().date_naive()));
+        self.render(ShowSet::Date(Local::now().date_naive()))
     }
 
     pub fn show(&self, set: ShowSet) {
@@ -119,8 +126,9 @@ impl Keeper {
         print!("{}", KeeperDisplay::new(self, set, ColorStyle::Color));
     }
 
-    pub fn render(&self, set: ShowSet) {
+    pub fn render(&self, set: ShowSet) -> anyhow::Result<()> {
         // delete old wall papers
+        let wallpapers_dir = &format!("{HOME}/.local/share/keeper/wallpapers/");
         process::Command::new("fd")
             .args([
                 "--type",
@@ -130,12 +138,12 @@ impl Keeper {
                 "--absolute-path",
                 "--no-ignore",
                 ".",
-                &format!("{HOME}/.local/share/keeper/wallpapers/"),
+                wallpapers_dir,
                 "-x",
                 "rm",
             ])
             .output()
-            .unwrap();
+            .with_context(|| format!("failed to delete old wallpapers from {wallpapers_dir}"))?;
 
         // create new one
         let today = Local::now();
@@ -146,7 +154,9 @@ impl Keeper {
 
         let mut renderer = KeeperRenderer::new(self, set, NORD_BG);
         renderer.render();
-        renderer.save(wallpaper_file.as_ref());
+        renderer
+            .save(wallpaper_file.as_ref())
+            .with_context(|| format!("failed to save new wallpaper to {wallpaper_file:?}"))?;
 
         // set new wallpaper
         process::Command::new("automator")
@@ -156,7 +166,9 @@ impl Keeper {
                 &format!("{HOME}/.local/share/keeper/wp.workflow"),
             ])
             .output()
-            .unwrap();
+            .context("automator workflow failed")?;
+
+        Ok(())
     }
 }
 
@@ -388,7 +400,9 @@ impl<'a> KeeperRenderer<'a> {
         }
     }
 
-    pub fn save(&mut self, path: &Path) {
-        self.image.save(path).expect("os L");
+    pub fn save(&mut self, path: &Path) -> anyhow::Result<()> {
+        self.image
+            .save(path)
+            .with_context(|| format!("failed to save image to {path:?}"))
     }
 }
