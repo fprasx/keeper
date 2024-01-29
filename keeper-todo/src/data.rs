@@ -14,6 +14,8 @@ use keeper_util::{
 };
 
 const HOME: &str = env!("HOME");
+// Not on the $PATH that cron uses, so we hardcode it here
+const FD: &str = concat!(env!("HOME"), "/.cargo/bin/fd");
 
 const SCREEN_HEIGHT: u32 = 956;
 const SCREEN_WIDTH: u32 = 1470;
@@ -129,7 +131,7 @@ impl Keeper {
     pub fn render(&self, set: ShowSet) -> anyhow::Result<()> {
         // delete old wall papers
         let wallpapers_dir = &format!("{HOME}/.local/share/keeper/wallpapers/");
-        process::Command::new("fd")
+        process::Command::new(FD)
             .args([
                 "--type",
                 "file",
