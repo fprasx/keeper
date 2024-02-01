@@ -282,7 +282,6 @@ struct KeeperRenderer<'a> {
 
 impl<'a> KeeperRenderer<'a> {
     pub fn new(keeper: &'a Keeper, selection: ShowSet, background_color: Rgb<u8>) -> Self {
-        // These generics are necessary for type inference later on. Fails to compile without
         let image = ImageBuffer::from_pixel(SCREEN_WIDTH, SCREEN_HEIGHT, background_color);
 
         let font = Font::try_from_vec(Vec::from(include_bytes!("../iosevka-regular.ttc") as &[u8]))
@@ -302,8 +301,7 @@ impl<'a> KeeperRenderer<'a> {
         // Subtracting another 20 pixels prevents noticeable left-right asymmetry for some reason
         let effective_width = (image.width() - 2 * X_PAD - 20) as f32;
 
-        // 3 pts = 4 pixels
-        let size = (effective_height / height).min(effective_width / width) * (4.0 / 3.0);
+        let size = (effective_height / height).min(effective_width / width);
         let scale = Scale { x: size, y: size };
 
         Self {
